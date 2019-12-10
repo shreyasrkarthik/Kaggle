@@ -1,0 +1,132 @@
+XG Boost v/s Random Forest v/s Extra Trees (Extra Random forest)
+	XG Boost (Gradient Boosting)
+	- XG Boost is a Boosting based algorithm where each DT learns from the previous weaker DT.
+	- Here a set of weak learners make a stronger learner.
+	- Here result aggregation is done during construction of each tree.  
+
+	Random Forest
+	- This is a Bagging(Boosting+Aggregation) based algorithm where n random trees are trained on a random subset of features (usually sqrt(num_features)) and then their results are aggregated to get the final output.
+	- Best node is selected (by using Gini or other such methods) based on the set of features that are used to construct the DT.
+
+	Extra Trees
+	- This is again a Bagging based algorithm where n random trees are trained on a random subset of features (usually sqrt(num_features)) and then their results are aggregated to get the final output.
+	- However, where it differs from the Random Forest is that the best node is selected randomly (hence extra random)
+
+Data Preprocessing:
+
+	Numeric Data Preprocessing:
+
+		- Features' value impact on non-tree based models.
+		- Scaling of features impact the model in perciving the importance of the feature itself.
+		- As linear models tend to predict the output class by computation of current features, it is very important for features to be scaled.
+		- viz, MinMaxScaler & StandardScaler.
+		- However, there could be times where outliers need to be dealt with before scaling the overall data.
+
+		- Outlier preprocessing
+			- One of the common approaches followed in financial data is called Winsorization.
+			- Winsorization is the process of removing 1st and 99th percentile of the data.
+			- Numpy's percentile method can be used to remove this.
+
+		- A work around for scaling the data with handling outliers is something called Rank Transformation.
+		- This would mean, each train/test entry in a feature would be ranked hence making the scale (0, lendata)
+		- Scipy's Rank-data function can be used for this.
+		- Rankdata can be done on a concatenation of train & test datasets.
+
+		- Another obvious way to deal with scaling data with outliers is using log & square-root functions. 
+
+		- Sometimes, it could help if the features are generated as a combination/concatenation of multiple transformation/scaled data. 
+
+		Feature Generation:
+			- Some of the goto options with numerical feature generation are, 
+				- If price of a house & area of a house are given as features, adding price/sqft as new feature.
+
+				- If price of a product is given, adding fractional part of the price as a new feature.
+				
+				- If horizontal & vertical distance between two features are given, adding straight distance as a new feature.
+
+
+	Categorical Data Preprocessing:
+		- Label Encoding, Frequency Encoding, OneHot Encoding.
+
+		- One of the common ways to preprocess the data is to use LabelEncoder.
+		- This works very well with tree based models, as it extracts the useful vaues in a category on its own. However they are not suited for linear, knn & nueral nets as these assume the numbers to be scaled & meaningful.
+
+		- one way to label-encode the categorical data is to compute the probability of occurance of the data.
+		- i.e., [c,c,c,c,d,d] can be encoded as [0.66,0.66,0.66,0.66,0.33,0.33]    
+
+		- As dealing with Label Encoding is not suitable for Linear models, we'd use One-hot encoding.
+		- But a problem with one-hot encoding occurs if the number of unique values for a feature is too high.
+		- Enters, sparse matrices. This should be used if the non-number of features are less than half of the total number of features.
+		- Another way to deal with this problem is to drop one of the columns of the generated one-hot encoded feature. (Note that this can be done only if both train & test data are handy.)
+
+		One hot encoded features could be generated using a combination of two features as well. This could help the model as it takes into consideration, the interaction between the features.
+
+
+	Datatime data preprocessing:
+		- There are multiple factors to consider while pre-processing this.
+		- Some of them are, periodicity, time-since & difference between dates.
+		- so, features such as day of the week, date since start_day, is_holiday, days_to_holiday etc. can be considered.
+		- Later these generated features need to be treated accordingly.
+
+
+	Geo-coordinates data preprocessing:
+		- Often distance between points are used as features when geo-coordinates are part of the data.
+		- However, using feautures such as distance between the geo-coordinate & a famous location or other such features could be really useful.
+		- Mean Realty price for a point, number of schools/hospitals with x-radius of a point etc. can also be generated as features, based on the problem that we're solving.
+
+Q. What is optimal train-test split?
+	-> There are two competing concerns: with less training data, your parameter estimates have greater variance. With less testing data, your performance statistic will have greater variance.
+	-> Split data into 80-20 train-test
+	-> Split train data into 80-20 train-validation
+
+Q. What is the ideal number of trees to be used in a RF or Extra Tree?
+	-> Random Forest is an ensemble algorithm that is designed to remove Overfitting in the data. Typically it has to be as much as possible as there is no performance penalty for having more trees, it just takes longer. The conventional wisdom is to look at the out of bag error rate as more trees are grown and stop once it "levels out". 
+
+Q. what is oob error?
+	-> Error for samples that are part of non-trained dataset.
+
+Q. What is the ideal k for knn for kmeans?  Why is it square-root of number of features a general followed trend?
+	-> If the number of classes is even, the general idea is to choose k as an odd number.
+	-> K & evaluation metric as a graph is an inverse parabola. With increase in K, the evaluation metrics can increase until it reaches an optimal point, after which the accuracy reduces (because of under-fitting of data) 
+
+Q. What is training-set, testing-set & validation-set?
+	-> Validation set is a subset of dataset that is used to fine tune the hyper-parameters. Where as testing-set is used to evaluate the model on final set of fine tuned hyper-parameters.
+	-> k-fold cross validation can also be used to simulate this. 
+
+Outlier Removal in Data:
+	-> Some of the methods of removing outliers are:
+		1. Box Plot
+			-> Box plot can help us in 
+		2. Scatter Plot
+		3. Z Score
+		4. IQR score
+
+Q. What is Grid Search
+	-> Grid search is simply a process of performing hyper parameter tuning in order to determine the optimal values for a given model.
+	-> from sklearn.model_selection import GridSearchCV
+	https://medium.com/datadriveninvestor/an-introduction-to-grid-search-ff57adcc0998
+
+
+Moving Average:
+	- Moving Average is computation of averages with time series data, with fixed n time periods.
+	- There are two types of MA typically used. 
+	1. Seasonal Moving Average (which gives equal weights to everything)
+	2. Exponential Moving Average (which gives greater weight to more recent prices.)
+	
+
+Time Series Forecasting:
+	-> Why can't we just use Regression based models to forecast the future data?
+	-> Well, one of the main reasons to not use Regression based models is that those models doesn't account for Seasonality & are highly affected by irregular trends.
+	-> In Regression, dependant variable Y is predicted based on a set of independent variables X.
+	-> In Time series forecasting, the dependant variables Y(t) is predicted based on variables such as Y(t-1) [This is a Univariate TS analysis]
+
+	-> Time Series Data is data collected at regular intervals of time.
+	-> Cross Section Data is data collected by observing many subjects at a single point of time.
+
+
+Readup more on this.
+	- AR, MA, ARMA, ARIMA and different Time series forecasting models
+	- Vowpal Wabbit for handling large datasets in memory
+	- keras for Nueral-Nets.
+	- xgboost for tree based algorithms
+-  
